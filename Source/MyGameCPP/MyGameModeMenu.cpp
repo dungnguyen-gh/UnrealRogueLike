@@ -13,8 +13,6 @@ void AMyGameModeMenu::BeginPlay()
         {
             UUserWidget* Menu = CreateWidget<UUserWidget>(PC, MainMenuWidgetClass);
             Menu->AddToViewport();
-            PC->bShowMouseCursor = true;
-            PC->SetInputMode(FInputModeUIOnly());
         }
     }
 }

@@ -78,11 +78,11 @@ public:
 	UBulletPoolComponent* BulletPool;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
-	float MaxHealth = 20.0f;
+	float MaxHealth = 100.0f;
 
 	UPROPERTY(BlueprintReadOnly)
 	float CurrentHealth;
 
 
-	void TakeDamage(float Amount);
+	void ReceiveDamage(float Amount);
 };

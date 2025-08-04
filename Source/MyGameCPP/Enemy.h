@@ -14,7 +14,7 @@ class MYGAMECPP_API AEnemy : public ACharacter
 public:
 	// Sets default values for this character's properties
 	AEnemy();
-	void TakeDamage(int32 Amount);
+	void ReceiveDamage(int32 Amount);
 
 	void ResetHealth();
 	bool IsAlive() const { return Health > 0; }

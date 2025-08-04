@@ -79,9 +79,7 @@ void AMainCharacter::BeginPlay()
 	}
 
 	CurrentHealth = MaxHealth;
-	if (auto GM = Cast<AMyGameModeCustom>(UGameplayStatics::GetGameMode(this)))
-		GM->InGameHUD->CallFunctionByNameWithArguments(
-			*FString::Printf(TEXT("UpdateHealth %f"), 1.0f), *GLog, nullptr, true);
+	
 
 	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &AMainCharacter::OnCapsuleHit);
 }
@@ -161,7 +159,7 @@ void AMainCharacter::ShootBullet()
 	ABulletProjectile* Bullet = BulletPool->GetBullet(SpawnLocation, Direction);
 	if (!Bullet)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("No bullets available to shoot."));
+		// invalid
 	}
 }
 
@@ -169,12 +167,12 @@ void AMainCharacter::OnCapsuleHit(UPrimitiveComponent* HitComp, AActor* OtherAct
 {
 	if (AEnemy* E = Cast<AEnemy>(OtherActor))
 	{
-		TakeDamage(1.0f);
+		ReceiveDamage(1.0f);
 	}
 
 }
 
-void AMainCharacter::TakeDamage(float Amount)
+void AMainCharacter::ReceiveDamage(float Amount)
 {
 	CurrentHealth = FMath::Max(0.f, CurrentHealth - Amount);
 	if (auto GM = Cast<AMyGameModeCustom>(UGameplayStatics::GetGameMode(this)))

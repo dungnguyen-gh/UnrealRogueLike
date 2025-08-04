@@ -70,7 +70,7 @@ void ABulletProjectile::OnBulletHit(UPrimitiveComponent* HitComponent, AActor* O
 	{
 		if (AEnemy* Enemy = Cast<AEnemy>(OtherActor))
 		{
-			Enemy->TakeDamage(1);
+			Enemy->ReceiveDamage(1);
 		}
 		ReturnToPool();
 	}

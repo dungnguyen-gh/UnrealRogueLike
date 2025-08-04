@@ -41,11 +41,11 @@ void AEnemy::Tick(float DeltaTime)
 		auto AIController = Cast<AAIController>(GetController());
 		if (AIController)
 		{
-			AIController->MoveToActor(TargetPlayer, 50.0f);
+			AIController->MoveToActor(TargetPlayer, 20.0f);
 		}
 	}
 }
-void AEnemy::TakeDamage(int32 Amount)
+void AEnemy::ReceiveDamage(int32 Amount)
 {
 	Health = FMath::Max(Health - Amount, 0);
 	if (Health <= 0) 

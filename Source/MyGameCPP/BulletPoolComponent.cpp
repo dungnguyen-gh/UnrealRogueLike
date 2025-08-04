@@ -45,7 +45,6 @@ ABulletProjectile* UBulletPoolComponent::GetBullet(FVector SpawnLocation, FVecto
 {
 	if (BulletPool.Num() == 0)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("No bullets available in pool!"));
 		return nullptr;
 	}
 

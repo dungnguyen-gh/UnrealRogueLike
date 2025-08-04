@@ -24,7 +24,7 @@ void AMyGameModeCustom::ShowGameOver()
 {
 	if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
 	{
-		if (InGameHUD) InGameHUD->RemoveFromViewport();
+		if (InGameHUD) InGameHUD->RemoveFromParent();
 		if (GameOverWidgetClass)
 		{
 			UUserWidget* GO = CreateWidget<UUserWidget>(PC, GameOverWidgetClass);
