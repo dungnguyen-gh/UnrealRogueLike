@@ -17,7 +17,8 @@ public class MyGameCPP : ModuleRules
             "HeadMountedDisplay", 
 			"EnhancedInput", 
 			"NavigationSystem", 
-			"AIModule", 
-			"GameplayTasks", });
-	}
+			"AIModule",
+            "Niagara",
+            "GameplayTasks", });
+    }
 }

@@ -4,7 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "NiagaraComponent.h"
 #include "Enemy.generated.h"
+
 
 UCLASS()
 class MYGAMECPP_API AEnemy : public ACharacter
@@ -17,9 +19,13 @@ public:
 	void ReceiveDamage(int32 Amount);
 
 	void ResetHealth();
+
 	bool IsAlive() const { return Health > 0; }
 
 	void ActivateEnemy(bool isActive);
+
+
+	
 
 protected:
 	// Called when the game starts or when spawned
@@ -27,10 +33,22 @@ protected:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	APawn* TargetPlayer;
+	UPROPERTY(EditAnywhere, Category = "Effects")
+	UNiagaraComponent* ExplosionEffect;
+
+	
+
 
 private:
 	int32 Health = 3;
 
 	int32 MaxHealth = 3;
+
+	APawn* TargetPlayer = nullptr;
+
+	class AAIController* CachedAIController = nullptr;
+
+	FTimerHandle TimerHandle_ExplosionReturn;
+
+	void PlayExplosionAndReturnToPool();
 };

@@ -66,8 +66,6 @@ void AEnemySpawner::ReturnToPool(AEnemy* Enemy)
     if (!Enemy) return;
 
     Enemy->ActivateEnemy(false);
-    Enemy->ResetHealth();
-
     ActiveEnemies.Remove(Enemy);
     EnemyPool.Add(Enemy);
 }
