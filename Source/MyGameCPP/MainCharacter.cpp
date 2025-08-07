@@ -17,6 +17,7 @@
 #include "MyGameModeCustom.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/SphereComponent.h"
 #include "Enemy.h"
 
 
@@ -52,6 +53,15 @@ AMainCharacter::AMainCharacter()
 
 	BulletPool = CreateDefaultSubobject<UBulletPoolComponent>("BulletPool");
 	BulletPool->BulletClass = BulletClass;
+
+	DamageSphere = CreateDefaultSubobject<USphereComponent>(TEXT("DamageSphere"));
+	DamageSphere->SetupAttachment(RootComponent);
+	DamageSphere->SetSphereRadius(100.0f); // Tune radius as needed
+	DamageSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	DamageSphere->SetCollisionObjectType(ECC_WorldDynamic);
+	DamageSphere->SetCollisionResponseToAllChannels(ECR_Ignore);
+	DamageSphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+
 }
 
 // Called when the game starts or when spawned
@@ -81,7 +91,7 @@ void AMainCharacter::BeginPlay()
 	CurrentHealth = MaxHealth;
 	
 
-	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &AMainCharacter::OnCapsuleHit);
+	DamageSphere->OnComponentBeginOverlap.AddDynamic(this, &AMainCharacter::OnDamageSphereOverlap);
 }
 
 
@@ -163,14 +173,15 @@ void AMainCharacter::ShootBullet()
 	}
 }
 
-void AMainCharacter::OnCapsuleHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+void AMainCharacter::OnDamageSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (AEnemy* E = Cast<AEnemy>(OtherActor))
+	if (AEnemy* Enemy = Cast<AEnemy>(OtherActor)) 
 	{
 		ReceiveDamage(1.0f);
 	}
-
 }
+
+
 
 void AMainCharacter::ReceiveDamage(float Amount)
 {

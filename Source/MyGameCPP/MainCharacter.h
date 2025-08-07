@@ -15,6 +15,7 @@ class UInputMappingContext;
 class UInputAction;
 class USceneComponent;
 class UBulletPoolComponent;
+class USphereComponent;
 
 UCLASS()
 class MYGAMECPP_API AMainCharacter : public ACharacter
@@ -42,13 +43,13 @@ protected:
 	void ShootBullet();
 
 	UFUNCTION()
-	void OnCapsuleHit(
-		UPrimitiveComponent* HitComp,
-		AActor* OtherActor,
-		UPrimitiveComponent* OtherComp,
-		FVector NormalImpulse,
-		const FHitResult& Hit
-	);
+	void OnDamageSphereOverlap(
+		UPrimitiveComponent* OverlappedComponent, 
+		AActor* OtherActor, 
+		UPrimitiveComponent* OtherComp, 
+		int32 OtherBodyIndex, 
+		bool bFromSweep, 
+		const FHitResult& SweepResult);
 
 public:
 	
@@ -82,6 +83,9 @@ public:
 
 	UPROPERTY(BlueprintReadOnly)
 	float CurrentHealth;
+
+	UPROPERTY(VisibleAnywhere, Category = "Component")
+	USphereComponent* DamageSphere;
 
 
 	void ReceiveDamage(float Amount);
