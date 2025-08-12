@@ -17,10 +17,10 @@ class MYGAMECPP_API AMyGameModeCustom : public AGameModeBase
 
 public:
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
-	TSubclassOf<UUserWidget> InGameHUDClass;
+	TSubclassOf<class UInGameManagerWidget> InGameHUDClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
-	TSubclassOf<UUserWidget> GameOverWidgetClass;
+	TSubclassOf<class UUserWidget> GameOverWidgetClass;
 
 	virtual void BeginPlay() override;
 

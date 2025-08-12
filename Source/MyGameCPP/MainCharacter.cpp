@@ -19,7 +19,8 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
 #include "Enemy.h"
-
+#include "NiagaraFunctionLibrary.h"
+#include "Engine/Engine.h"
 
 // Sets default values
 AMainCharacter::AMainCharacter()
@@ -164,12 +165,58 @@ void AMainCharacter::ShootBullet()
 {
 	if (!BulletPool || !FirePoint) return;
 
-	FVector SpawnLocation = FirePoint->GetComponentLocation();
-	FVector Direction = FirePoint->GetForwardVector();
-	ABulletProjectile* Bullet = BulletPool->GetBullet(SpawnLocation, Direction);
-	if (!Bullet)
+	const FVector SpawnLocation = FirePoint->GetComponentLocation();
+	const FRotator BaseRot = FirePoint->GetComponentRotation();
+	const FVector Right = FirePoint->GetRightVector();
+
+
+	auto SpawnShot = [&](const FRotator& ShotRot, const FVector& Pos)
+		{
+			const FVector Dir = ShotRot.Vector().GetSafeNormal(); // convert rotator -> direction
+			// debug arrow
+			DrawDebugDirectionalArrow(GetWorld(), Pos, Pos + Dir * 300.f, 40.f, FColor::Red, false, 2.0f, 0, 4.0f);
+			BulletPool->GetBullet(Pos, Dir);
+		};
+
+
+	switch (CurrentPowerUp)
 	{
-		// invalid
+		case EPowerUpType::WideShot:
+		{
+			const float AngleOffset = 30.0f;
+			const float SideOffset = 30.0f;
+
+			FRotator LeftRot = BaseRot + FRotator(0.f, -AngleOffset, 0.f);
+			FRotator MiddleRot = BaseRot;
+			FRotator RightRot = BaseRot + FRotator(0.f, AngleOffset, 0.f);
+
+			// Offset spawn positions sideways
+			FVector LeftSpawn = SpawnLocation - Right * SideOffset;
+			FVector MiddleSpawn = SpawnLocation;
+			FVector RightSpawn = SpawnLocation + Right * SideOffset;
+
+			SpawnShot(LeftRot, LeftSpawn);
+			SpawnShot(MiddleRot, MiddleSpawn);
+			SpawnShot(RightRot, RightSpawn);
+			break;
+		}
+		case EPowerUpType::NormalShot:
+		case EPowerUpType::HealthRecovery:
+		case EPowerUpType::ExplosionShot:
+		default:
+			SpawnShot(BaseRot, SpawnLocation);
+			break;
+	}
+
+	
+}
+
+void AMainCharacter::RecoverHealth(float Amount)
+{
+	CurrentHealth = FMath::Clamp(CurrentHealth + Amount, 0.f, MaxHealth);
+	if (auto GM = Cast<AMyGameModeCustom>(UGameplayStatics::GetGameMode(this)))
+	{
+		GM->InGameHUD->UpdateHealth(CurrentHealth / MaxHealth);
 	}
 }
 
@@ -177,7 +224,7 @@ void AMainCharacter::OnDamageSphereOverlap(UPrimitiveComponent* OverlappedCompon
 {
 	if (AEnemy* Enemy = Cast<AEnemy>(OtherActor)) 
 	{
-		ReceiveDamage(1.0f);
+		ReceiveDamage(5.0f);
 	}
 }
 
@@ -191,6 +238,64 @@ void AMainCharacter::ReceiveDamage(float Amount)
 		GM->InGameHUD->UpdateHealth(CurrentHealth / MaxHealth);
 		if (CurrentHealth <= 0.f)
 			GM->ShowGameOver();
+	}
+}
+
+void AMainCharacter::ApplyPowerUp(EPowerUpType Type)
+{
+	switch (Type)
+	{
+		case EPowerUpType::HealthRecovery:
+			RecoverHealth(25.0f);
+			break;
+
+		case EPowerUpType::WideShot:
+			CurrentPowerUp = Type;
+			break;
+
+		case EPowerUpType::NormalShot:
+			CurrentPowerUp = Type;
+			break;
+
+		case EPowerUpType::ExplosionShot:
+			{
+				FVector ExplosionLocation = GetActorLocation();
+				float ExplosionRadius = 300.f;
+				int32 ExplosionDamage = 3;
+
+				// draw debug sphere
+				DrawDebugSphere(GetWorld(), ExplosionLocation, ExplosionRadius, 16, FColor::Red, false, 2.0f);
+
+				TArray<FOverlapResult> Overlaps;
+				FCollisionShape SphereShape = FCollisionShape::MakeSphere(ExplosionRadius);
+
+				bool bHit = GetWorld()->OverlapMultiByChannel(
+					Overlaps,
+					ExplosionLocation,
+					FQuat::Identity,
+					ECC_Pawn,
+					SphereShape
+				);
+
+				if (bHit)
+				{
+					for (auto& Overlap : Overlaps)
+					{
+						if (AEnemy* Enemy = Cast<AEnemy>(Overlap.GetActor()))
+						{
+							Enemy->ReceiveDamage(ExplosionDamage);
+						}
+					}
+				}
+
+				// Play effect
+				if (ExplosionEffect)
+				{
+					UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), ExplosionEffect, ExplosionLocation);
+				}
+
+				break;
+			}
 	}
 }
 

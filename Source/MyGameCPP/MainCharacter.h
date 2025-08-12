@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
 #include "BulletPoolComponent.h"
+#include "PowerUpTypes.h"
+#include "NiagaraSystem.h"
 #include "MainCharacter.generated.h"
 
 
@@ -41,6 +43,7 @@ protected:
 
 	void HandleShoot(const FInputActionValue& Value);
 	void ShootBullet();
+	void RecoverHealth(float Amount);
 
 	UFUNCTION()
 	void OnDamageSphereOverlap(
@@ -50,6 +53,12 @@ protected:
 		int32 OtherBodyIndex, 
 		bool bFromSweep, 
 		const FHitResult& SweepResult);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PowerUps")
+	EPowerUpType CurrentPowerUp = EPowerUpType::NormalShot;
+
+	UPROPERTY(EditAnywhere, Category = "Effects")
+	UNiagaraSystem* ExplosionEffect;
 
 public:
 	
@@ -89,4 +98,8 @@ public:
 
 
 	void ReceiveDamage(float Amount);
+
+	void ApplyPowerUp(EPowerUpType Type);
+
+	
 };

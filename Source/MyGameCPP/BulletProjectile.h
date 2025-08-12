@@ -19,14 +19,17 @@ public:
 	// Sets default values for this actor's properties
 	ABulletProjectile();
 
-	void Activate(const FVector& Direction, UBulletPoolComponent* Pool);
+	void Activate(const FVector& Direction);
 	void Deactivate();
 
+	void SetPool(UBulletPoolComponent* Pool) { BulletPool = Pool; }
 
 
 protected:
 	virtual void BeginPlay() override;
 
+	UPROPERTY()
+	UBulletPoolComponent* BulletPool;
 	
 private:
 	UPROPERTY(VisibleAnywhere)
@@ -35,8 +38,6 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	UProjectileMovementComponent* MovementComponent;
 
-	UPROPERTY()
-	UBulletPoolComponent* BulletPool;
 
 	FTimerHandle LifetimeTimer;
 

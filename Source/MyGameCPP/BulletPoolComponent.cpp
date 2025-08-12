@@ -35,6 +35,7 @@ void UBulletPoolComponent::InitializePool()
 		ABulletProjectile* Bullet = GetWorld()->SpawnActor<ABulletProjectile>(BulletClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
 		if (Bullet)
 		{
+			Bullet->SetPool(this);
 			Bullet->Deactivate();
 			BulletPool.Add(Bullet);
 		}
@@ -54,8 +55,15 @@ ABulletProjectile* UBulletPoolComponent::GetBullet(FVector SpawnLocation, FVecto
 
 	ActiveBullets.Add(Bullet);
 
+	const FVector Dir = Direction.GetSafeNormal();
+	if (Dir.IsNearlyZero())
+		return nullptr;
+
+	// Place bullet and activate with direction
 	Bullet->SetActorLocation(SpawnLocation);
-	Bullet->Activate(Direction, this);
+	Bullet->Activate(Dir);
+
+
 	return Bullet;
 }
 

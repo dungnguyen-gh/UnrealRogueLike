@@ -19,6 +19,7 @@ ABulletProjectile::ABulletProjectile()
 	RootComponent = BulletMesh;
 
 	MovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>("MovementComponent");
+	MovementComponent->UpdatedComponent = RootComponent;
 	MovementComponent->InitialSpeed = 1000.0f;
 	MovementComponent->MaxSpeed = 1000.0f;
 	MovementComponent->bRotationFollowsVelocity = true;
@@ -27,21 +28,29 @@ ABulletProjectile::ABulletProjectile()
 	SetActorEnableCollision(false);
 }
 
-void ABulletProjectile::Activate(const FVector& Direction, UBulletPoolComponent* Pool)
+void ABulletProjectile::Activate(const FVector& Direction)
 {
-	if (Direction.IsNearlyZero())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Bullet direction is zero!"));
-		return; // Optionally, skip activation if direction is invalid
-	}
-	BulletPool = Pool;
+	const FVector Dir = Direction.GetSafeNormal();
+	if (Dir.IsNearlyZero())
+		return;
+
 	SetActorHiddenInGame(false);
 	SetActorEnableCollision(true);
 
-	MovementComponent->Activate();
-	MovementComponent->Velocity = Direction * MovementComponent->InitialSpeed;
+	
 
-	GetWorld()->GetTimerManager().SetTimer(LifetimeTimer, this,&ABulletProjectile::ReturnToPool,BulletPool->BulletLifetime,false);
+	if (MovementComponent)
+	{
+		MovementComponent->StopMovementImmediately();
+		MovementComponent->Velocity = Dir * MovementComponent->InitialSpeed;
+		MovementComponent->Activate();
+	}
+
+	SetActorRotation(Dir.Rotation());
+
+	GetWorld()->GetTimerManager().ClearTimer(LifetimeTimer);
+	float life = (BulletPool ? BulletPool->BulletLifetime : 5.0f);
+	GetWorld()->GetTimerManager().SetTimer(LifetimeTimer, this,&ABulletProjectile::ReturnToPool,life,false);
 }
 
 void ABulletProjectile::Deactivate()
@@ -49,8 +58,12 @@ void ABulletProjectile::Deactivate()
 	SetActorHiddenInGame(true);
 	SetActorEnableCollision(false);
 
-	MovementComponent->Velocity = FVector::ZeroVector;
-	MovementComponent->Deactivate();
+	if (MovementComponent)
+	{
+		MovementComponent->StopMovementImmediately();
+		MovementComponent->Deactivate();
+		MovementComponent->Velocity = FVector::ZeroVector;
+	}
 
 	GetWorld()->GetTimerManager().ClearTimer(LifetimeTimer);
 }
@@ -72,6 +85,9 @@ void ABulletProjectile::OnBulletHit(UPrimitiveComponent* HitComponent, AActor* O
 		{
 			Enemy->ReceiveDamage(1);
 		}
+
+		GetWorld()->GetTimerManager().ClearTimer(LifetimeTimer);
+
 		ReturnToPool();
 	}
 	
@@ -79,10 +95,15 @@ void ABulletProjectile::OnBulletHit(UPrimitiveComponent* HitComponent, AActor* O
 
 void ABulletProjectile::ReturnToPool()
 {
+	GetWorld()->GetTimerManager().ClearTimer(LifetimeTimer);
 	if (BulletPool)
 	{
 		BulletPool->ReturnBullet(this);
-		BulletPool = nullptr;
+	}
+	else
+	{
+		// fallback safety
+		Destroy();
 	}
 }
 

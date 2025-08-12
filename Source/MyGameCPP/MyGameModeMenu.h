@@ -17,7 +17,7 @@ class MYGAMECPP_API AMyGameModeMenu : public AGameModeBase
 public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
-	TSubclassOf<UUserWidget> MainMenuWidgetClass;
+	TSubclassOf<class UUserWidget> MainMenuWidgetClass;
 
 	virtual void BeginPlay() override;
 	
